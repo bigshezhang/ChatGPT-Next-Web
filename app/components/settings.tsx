@@ -19,7 +19,6 @@ import {
   useChatStore,
   Theme,
   ALL_MODELS,
-  useUpdateStore,
   useAccessStore,
   ModalConfigValidator,
 } from "../store";
@@ -28,7 +27,7 @@ import { Avatar } from "./chat";
 import Locale, { AllLangs, changeLang, getLang } from "../locales";
 import { getCurrentVersion } from "../utils";
 import Link from "next/link";
-import { UPDATE_URL } from "../constant";
+// import { UPDATE_URL } from "../constant";
 import { SearchService, usePromptStore } from "../store/prompt";
 import { requestUsage } from "../requests";
 import { ErrorBoundary } from "./error";
@@ -81,11 +80,8 @@ export function Settings(props: { closeSettings: () => void }) {
       state.clearSessions,
     ]);
 
-  const updateStore = useUpdateStore();
   const [checkingUpdate, setCheckingUpdate] = useState(false);
   const currentId = getCurrentVersion();
-  const remoteId = updateStore.remoteId;
-  const hasNewVersion = currentId !== remoteId;
 
   // function checkUpdate(force = false) {
   //   setCheckingUpdate(true);
