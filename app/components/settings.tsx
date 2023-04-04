@@ -87,12 +87,12 @@ export function Settings(props: { closeSettings: () => void }) {
   const remoteId = updateStore.remoteId;
   const hasNewVersion = currentId !== remoteId;
 
-  function checkUpdate(force = false) {
-    setCheckingUpdate(true);
-    updateStore.getLatestCommitId(force).then(() => {
-      setCheckingUpdate(false);
-    });
-  }
+  // function checkUpdate(force = false) {
+  //   setCheckingUpdate(true);
+  //   updateStore.getLatestCommitId(force).then(() => {
+  //     setCheckingUpdate(false);
+  //   });
+  // }
 
   const [usage, setUsage] = useState<{
     used?: number;
@@ -112,7 +112,7 @@ export function Settings(props: { closeSettings: () => void }) {
   }
 
   useEffect(() => {
-    checkUpdate();
+    // checkUpdate();
     checkUsage();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -181,7 +181,7 @@ export function Settings(props: { closeSettings: () => void }) {
               content={
                 <EmojiPicker
                   lazyLoadEmojis
-                  theme={EmojiTheme.AUTO}
+                  theme={EmojiTheme.LIGHT}
                   onEmojiClick={(e) => {
                     updateConfig((config) => (config.avatar = e.unified));
                     setShowEmojiPicker(false);
@@ -199,7 +199,8 @@ export function Settings(props: { closeSettings: () => void }) {
             </Popover>
           </SettingItem>
 
-          <SettingItem
+          {/* 更新 */}
+          {/* <SettingItem
             title={Locale.Settings.Update.Version(currentId)}
             subTitle={
               checkingUpdate
@@ -222,7 +223,7 @@ export function Settings(props: { closeSettings: () => void }) {
                 onClick={() => checkUpdate(true)}
               />
             )}
-          </SettingItem>
+          </SettingItem> */}
 
           <SettingItem title={Locale.Settings.SendKey}>
             <select
@@ -372,7 +373,7 @@ export function Settings(props: { closeSettings: () => void }) {
             <></>
           )}
 
-          <SettingItem
+          {/* <SettingItem
             title={Locale.Settings.Token.Title}
             subTitle={Locale.Settings.Token.SubTitle}
           >
@@ -384,9 +385,9 @@ export function Settings(props: { closeSettings: () => void }) {
                 accessStore.updateToken(e.currentTarget.value);
               }}
             />
-          </SettingItem>
+          </SettingItem> */}
 
-          <SettingItem
+          {/* <SettingItem
             title={Locale.Settings.Usage.Title}
             subTitle={
               showUsage
@@ -405,7 +406,7 @@ export function Settings(props: { closeSettings: () => void }) {
                 onClick={checkUsage}
               />
             )}
-          </SettingItem>
+          </SettingItem> */}
 
           <SettingItem
             title={Locale.Settings.HistoryCount.Title}
@@ -448,7 +449,7 @@ export function Settings(props: { closeSettings: () => void }) {
         </List>
 
         <List>
-          <SettingItem title={Locale.Settings.Model}>
+          {/* <SettingItem title={Locale.Settings.Model}>
             <select
               value={config.modelConfig.model}
               onChange={(e) => {
@@ -466,7 +467,7 @@ export function Settings(props: { closeSettings: () => void }) {
                 </option>
               ))}
             </select>
-          </SettingItem>
+          </SettingItem> */}
           <SettingItem
             title={Locale.Settings.Temperature.Title}
             subTitle={Locale.Settings.Temperature.SubTitle}

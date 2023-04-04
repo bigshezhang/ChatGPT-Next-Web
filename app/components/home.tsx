@@ -8,10 +8,33 @@ import { IconButton } from "./button";
 import styles from "./home.module.scss";
 
 import SettingsIcon from "../icons/settings.svg";
-import GithubIcon from "../icons/github.svg";
-import ChatGptIcon from "../icons/chatgpt.svg";
+// import GithubIcon from "../icons/github.svg";
+// import ChatGptIcon from "../icons/chatgpt.svg";
 
-import BotIcon from "../icons/bot.svg";
+type Props = {
+  width?: number;
+  height?: number;
+  className?: string;
+};
+
+const TextLOVEIcon: React.FC<Props> = ({ width = 400, className }) => (
+  <img
+    src="https://aispace.arunningstar.com/icons/logo-text.png"
+    alt="Bot icon"
+    width={width}
+    className={className}
+  />
+);
+
+const BotIcon: React.FC<Props> = ({ width = 24, height = 24, className }) => (
+  <img
+    src="https://aispace.arunningstar.com/icons/logo-square.png"
+    alt="Bot icon"
+    width={width}
+    height={height}
+    className={className}
+  />
+);
 import AddIcon from "../icons/add.svg";
 import LoadingIcon from "../icons/three-dots.svg";
 import CloseIcon from "../icons/close.svg";
@@ -23,13 +46,13 @@ import { ChatList } from "./chat-list";
 import { Chat } from "./chat";
 
 import dynamic from "next/dynamic";
-import { REPO_URL } from "../constant";
+// import { REPO_URL } from "../constant";
 import { ErrorBoundary } from "./error";
 
 export function Loading(props: { noLogo?: boolean }) {
   return (
     <div className={styles["loading-content"]}>
-      {!props.noLogo && <BotIcon />}
+      {!props.noLogo && <TextLOVEIcon />}
       <LoadingIcon />
     </div>
   );
@@ -91,7 +114,7 @@ function _Home() {
     ],
   );
   const loading = !useHasHydrated();
-  const [showSideBar, setShowSideBar] = useState(true);
+  const [showSideBar, setShowSideBar] = useState(false);
 
   // setting
   const [openSettings, setOpenSettings] = useState(false);
@@ -115,13 +138,16 @@ function _Home() {
         className={styles.sidebar + ` ${showSideBar && styles["sidebar-show"]}`}
       >
         <div className={styles["sidebar-header"]}>
-          <div className={styles["sidebar-title"]}>ChatGPT Next</div>
+          <img
+            style={{ width: "100%", height: "auto", marginBottom: "0px" }}
+            src="https://aispace.arunningstar.com/icons/logo-text.png"
+          />
           <div className={styles["sidebar-sub-title"]}>
-            Build your own AI assistant.
+            构建属于你的人工智能助手。
           </div>
-          <div className={styles["sidebar-logo"]}>
+          {/* <div className={styles["sidebar-logo"]}>
             <ChatGptIcon />
-          </div>
+          </div> */}
         </div>
 
         <div
@@ -156,11 +182,11 @@ function _Home() {
                 shadow
               />
             </div>
-            <div className={styles["sidebar-action"]}>
+            {/* <div className={styles["sidebar-action"]}>
               <a href={REPO_URL} target="_blank">
                 <IconButton icon={<GithubIcon />} shadow />
               </a>
-            </div>
+            </div> */}
           </div>
           <div>
             <IconButton

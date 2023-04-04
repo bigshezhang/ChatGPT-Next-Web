@@ -8,7 +8,20 @@ import MenuIcon from "../icons/menu.svg";
 import CopyIcon from "../icons/copy.svg";
 import DownloadIcon from "../icons/download.svg";
 import LoadingIcon from "../icons/three-dots.svg";
-import BotIcon from "../icons/bot.svg";
+type Props = {
+  width?: number;
+  height?: number;
+  className?: string;
+};
+const BotIcon: React.FC<Props> = ({ width = 24, height = 24, className }) => (
+  <img
+    src="https://aispace.arunningstar.com/icons/logo-square.png"
+    alt="Bot icon"
+    width={width}
+    height={height}
+    className={className}
+  />
+);
 import AddIcon from "../icons/add.svg";
 import DeleteIcon from "../icons/delete.svg";
 
