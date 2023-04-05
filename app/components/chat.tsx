@@ -45,6 +45,7 @@ import styles from "./home.module.scss";
 import chatStyle from "./chat.module.scss";
 
 import { Modal, showModal, showToast } from "./ui-lib";
+import { EmojiStyle } from "emoji-picker-react";
 
 const Markdown = dynamic(
   async () => memo((await import("./markdown")).Markdown),
@@ -66,7 +67,13 @@ export function Avatar(props: { role: Message["role"] }) {
 
   return (
     <div className={styles["user-avtar"]}>
-      <Emoji unified={config.avatar} size={18} />
+      <Emoji
+        getEmojiUrl={(unified: string, style: EmojiStyle) => {
+          return `https://cdn.staticfile.org/emoji-datasource-apple/14.0.0/img/${style}/64/${unified}.png`;
+        }}
+        unified={config.avatar}
+        size={18}
+      />
     </div>
   );
 }
