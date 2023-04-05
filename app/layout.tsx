@@ -49,6 +49,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <script
+          async
+          defer
+          data-website-id="0db60109-70fb-4ca9-be1f-0df3e2b97221"
+          src="https://analyse.arunningstar.com/umami.js"
+        ></script>
+        {/* <script dangerouslySetInnerHTML={getAnalyticsTag()}/> */}
         <meta
           name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
