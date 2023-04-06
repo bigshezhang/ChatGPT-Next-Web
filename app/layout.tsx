@@ -4,6 +4,8 @@ import "./styles/markdown.scss";
 import "./styles/highlight.scss";
 import process from "child_process";
 import { ACCESS_CODES, IS_IN_DOCKER } from "./api/access";
+import { Router } from "next/router";
+import Head from "next/head";
 
 let COMMIT_ID: string | undefined;
 try {
@@ -40,6 +42,18 @@ function Meta() {
     </>
   );
 }
+const getAnalyticsTag = () => {
+  return {
+    __html: `
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?f8bccc5d25a8fa46016e032f53ad8bf1";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();`,
+  };
+};
 
 export default function RootLayout({
   children,
@@ -55,7 +69,9 @@ export default function RootLayout({
           data-website-id="0db60109-70fb-4ca9-be1f-0df3e2b97221"
           src="https://analyse.arunningstar.com/umami.js"
         ></script>
-        {/* <script dangerouslySetInnerHTML={getAnalyticsTag()}/> */}
+        <Head>
+          <script dangerouslySetInnerHTML={getAnalyticsTag()} />
+        </Head>
         <meta
           name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
