@@ -28,7 +28,7 @@ import {
 import { Avatar } from "./chat";
 
 import Locale, { AllLangs, changeLang, getLang } from "../locales";
-import { getCurrentVersion } from "../utils";
+import { getCurrentVersion, getEmojiUrl } from "../utils";
 import Link from "next/link";
 // import { UPDATE_URL } from "../constant";
 import { SearchService, usePromptStore } from "../store/prompt";
@@ -95,16 +95,13 @@ export function Settings(props: { closeSettings: () => void }) {
 
   const [usage, setUsage] = useState<{
     used?: number;
+    subscription?: number;
   }>();
   const [loadingUsage, setLoadingUsage] = useState(false);
   function checkUsage() {
     setLoadingUsage(true);
     requestUsage()
-      .then((res) =>
-        setUsage({
-          used: res,
-        }),
-      )
+      .then((res) => setUsage(res))
       .finally(() => {
         setLoadingUsage(false);
       });
@@ -127,12 +124,13 @@ export function Settings(props: { closeSettings: () => void }) {
   const builtinCount = SearchService.count.builtin;
   const customCount = promptStore.prompts.size ?? 0;
 
-  const showUsage = accessStore.token !== "";
+  const showUsage = !!accessStore.token || !!accessStore.accessCode;
+
   useEffect(() => {
-    if (showUsage) {
-      checkUsage();
-    }
-  }, [showUsage]);
+    checkUpdate();
+    showUsage && checkUsage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <ErrorBoundary>
@@ -395,7 +393,10 @@ export function Settings(props: { closeSettings: () => void }) {
               showUsage
                 ? loadingUsage
                   ? Locale.Settings.Usage.IsChecking
-                  : Locale.Settings.Usage.SubTitle(usage?.used ?? "[?]")
+                  : Locale.Settings.Usage.SubTitle(
+                      usage?.used ?? "[?]",
+                      usage?.subscription ?? "[?]",
+                    )
                 : Locale.Settings.Usage.NoAccess
             }
           >
