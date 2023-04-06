@@ -69,6 +69,11 @@ export default function RootLayout({
           data-website-id="0db60109-70fb-4ca9-be1f-0df3e2b97221"
           src="https://analyse.arunningstar.com/umami.js"
         ></script>
+        <script
+          async
+          defer
+          src="https://hm.baidu.com/hm.js?f8bccc5d25a8fa46016e032f53ad8bf1"
+        ></script>
         <Head>
           <script dangerouslySetInnerHTML={getAnalyticsTag()} />
         </Head>
