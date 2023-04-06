@@ -542,11 +542,11 @@ export function Chat(props: {
               }
             }}
           >
-            {session.topic}
+            小贴士：
           </div>
           <div className={styles["window-header-sub-title"]}>
             {/* {Locale.Chat.SubTitle(session.messages.length)} */}
-            小贴士：公众号可链接到 100100.LOVE 增加AI陪聊
+            公众号可链接到 WWW.100100.LOVE 增加AI陪聊
           </div>
         </div>
         <div className={styles["window-actions"]}>
