@@ -101,6 +101,29 @@ export function ChatList() {
                 }
               />
             ))}
+            <Draggable draggableId={"23333"} index={23333}>
+              {(provided) => (
+                <div
+                  className={`${styles["chat-item"]} ${
+                    false && styles["chat-item-selected"]
+                  }`}
+                  onClick={() => {
+                    open("https://docs.qq.com/form/page/DVnVpcUNmVXhtTFps");
+                  }}
+                  ref={provided.innerRef}
+                  {...provided.draggableProps}
+                  {...provided.dragHandleProps}
+                >
+                  <div className={styles["chat-item-title"]}>{"联系我们"}</div>
+                  <div className={styles["chat-item-info"]}>
+                    <div className={styles["chat-item-count"]}>
+                      {/* {Locale.ChatItem.ChatItemCount(props.count)} */}
+                    </div>
+                    {/* <div className={styles["chat-item-date"]}>{props.time}</div> */}
+                  </div>
+                </div>
+              )}
+            </Draggable>
             {provided.placeholder}
           </div>
         )}
