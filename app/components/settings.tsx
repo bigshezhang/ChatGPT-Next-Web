@@ -28,12 +28,13 @@ import {
 import { Avatar } from "./chat";
 
 import Locale, { AllLangs, changeLang, getLang } from "../locales";
-import { getCurrentVersion, getEmojiUrl } from "../utils";
+import { getEmojiUrl } from "../utils";
 import Link from "next/link";
 // import { UPDATE_URL } from "../constant";
 import { SearchService, usePromptStore } from "../store/prompt";
 import { requestUsage } from "../requests";
 import { ErrorBoundary } from "./error";
+import { InputRange } from "./input-range";
 
 function SettingItem(props: {
   title: string;
@@ -61,13 +62,17 @@ function PasswordInput(props: HTMLProps<HTMLInputElement>) {
   }
 
   return (
-    <div className={styles["password-input"]}>
+    <div className={styles["password-input-container"]}>
       <IconButton
         icon={visible ? <EyeIcon /> : <EyeOffIcon />}
         onClick={changeVisibility}
         className={styles["password-eye"]}
       />
-      <input {...props} type={visible ? "text" : "password"} />
+      <input
+        {...props}
+        type={visible ? "text" : "password"}
+        className={styles["password-input"]}
+      />
     </div>
   );
 }
@@ -84,7 +89,6 @@ export function Settings(props: { closeSettings: () => void }) {
     ]);
 
   const [checkingUpdate, setCheckingUpdate] = useState(false);
-  const currentId = getCurrentVersion();
 
   // function checkUpdate(force = false) {
   //   setCheckingUpdate(true);
@@ -124,11 +128,23 @@ export function Settings(props: { closeSettings: () => void }) {
   const builtinCount = SearchService.count.builtin;
   const customCount = promptStore.prompts.size ?? 0;
 
-  const showUsage = !!accessStore.token || !!accessStore.accessCode;
-
+  const showUsage = accessStore.isAuthorized();
   useEffect(() => {
     // checkUpdate();
     showUsage && checkUsage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const keydownEvent = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        props.closeSettings();
+      }
+    };
+    document.addEventListener("keydown", keydownEvent);
+    return () => {
+      document.removeEventListener("keydown", keydownEvent);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -147,7 +163,14 @@ export function Settings(props: { closeSettings: () => void }) {
           <div className={styles["window-action-button"]}>
             <IconButton
               icon={<ClearIcon />}
-              onClick={clearSessions}
+              onClick={() => {
+                const confirmed = window.confirm(
+                  `${Locale.Settings.Actions.ConfirmClearAll.Confirm}`,
+                );
+                if (confirmed) {
+                  clearSessions();
+                }
+              }}
               bordered
               title={Locale.Settings.Actions.ClearAll}
             />
@@ -155,7 +178,14 @@ export function Settings(props: { closeSettings: () => void }) {
           <div className={styles["window-action-button"]}>
             <IconButton
               icon={<ResetIcon />}
-              onClick={resetConfig}
+              onClick={() => {
+                const confirmed = window.confirm(
+                  `${Locale.Settings.Actions.ConfirmResetAll.Confirm}`,
+                );
+                if (confirmed) {
+                  resetConfig();
+                }
+              }}
               bordered
               title={Locale.Settings.Actions.ResetAll}
             />
@@ -282,8 +312,7 @@ export function Settings(props: { closeSettings: () => void }) {
             title={Locale.Settings.FontSize.Title}
             subTitle={Locale.Settings.FontSize.SubTitle}
           >
-            <input
-              type="range"
+            <InputRange
               title={`${config.fontSize ?? 14}px`}
               value={config.fontSize}
               min="12"
@@ -295,7 +324,7 @@ export function Settings(props: { closeSettings: () => void }) {
                     (config.fontSize = Number.parseInt(e.currentTarget.value)),
                 )
               }
-            ></input>
+            ></InputRange>
           </SettingItem>
 
           <SettingItem title={Locale.Settings.TightBorder}>
@@ -323,37 +352,7 @@ export function Settings(props: { closeSettings: () => void }) {
             ></input>
           </SettingItem>
         </List>
-        <List>
-          <SettingItem
-            title={Locale.Settings.Prompt.Disable.Title}
-            subTitle={Locale.Settings.Prompt.Disable.SubTitle}
-          >
-            <input
-              type="checkbox"
-              checked={config.disablePromptHint}
-              onChange={(e) =>
-                updateConfig(
-                  (config) =>
-                    (config.disablePromptHint = e.currentTarget.checked),
-                )
-              }
-            ></input>
-          </SettingItem>
 
-          <SettingItem
-            title={Locale.Settings.Prompt.List}
-            subTitle={Locale.Settings.Prompt.ListCount(
-              builtinCount,
-              customCount,
-            )}
-          >
-            <IconButton
-              icon={<EditIcon />}
-              text={Locale.Settings.Prompt.Edit}
-              onClick={() => showToast(Locale.WIP)}
-            />
-          </SettingItem>
-        </List>
         <List>
           {enabledAccessControl ? (
             <SettingItem
@@ -415,8 +414,7 @@ export function Settings(props: { closeSettings: () => void }) {
             title={Locale.Settings.HistoryCount.Title}
             subTitle={Locale.Settings.HistoryCount.SubTitle}
           >
-            <input
-              type="range"
+            <InputRange
               title={config.historyMessageCount.toString()}
               value={config.historyMessageCount}
               min="0"
@@ -428,7 +426,7 @@ export function Settings(props: { closeSettings: () => void }) {
                     (config.historyMessageCount = e.target.valueAsNumber),
                 )
               }
-            ></input>
+            ></InputRange>
           </SettingItem>
 
           <SettingItem
@@ -448,6 +446,38 @@ export function Settings(props: { closeSettings: () => void }) {
                 )
               }
             ></input>
+          </SettingItem>
+        </List>
+
+        <List>
+          <SettingItem
+            title={Locale.Settings.Prompt.Disable.Title}
+            subTitle={Locale.Settings.Prompt.Disable.SubTitle}
+          >
+            <input
+              type="checkbox"
+              checked={config.disablePromptHint}
+              onChange={(e) =>
+                updateConfig(
+                  (config) =>
+                    (config.disablePromptHint = e.currentTarget.checked),
+                )
+              }
+            ></input>
+          </SettingItem>
+
+          <SettingItem
+            title={Locale.Settings.Prompt.List}
+            subTitle={Locale.Settings.Prompt.ListCount(
+              builtinCount,
+              customCount,
+            )}
+          >
+            <IconButton
+              icon={<EditIcon />}
+              text={Locale.Settings.Prompt.Edit}
+              onClick={() => showToast(Locale.WIP)}
+            />
           </SettingItem>
         </List>
 
@@ -475,8 +505,7 @@ export function Settings(props: { closeSettings: () => void }) {
             title={Locale.Settings.Temperature.Title}
             subTitle={Locale.Settings.Temperature.SubTitle}
           >
-            <input
-              type="range"
+            <InputRange
               value={config.modelConfig.temperature?.toFixed(1)}
               min="0"
               max="2"
@@ -490,7 +519,7 @@ export function Settings(props: { closeSettings: () => void }) {
                       )),
                 );
               }}
-            ></input>
+            ></InputRange>
           </SettingItem>
           <SettingItem
             title={Locale.Settings.MaxTokens.Title}
@@ -516,8 +545,7 @@ export function Settings(props: { closeSettings: () => void }) {
             title={Locale.Settings.PresencePenlty.Title}
             subTitle={Locale.Settings.PresencePenlty.SubTitle}
           >
-            <input
-              type="range"
+            <InputRange
               value={config.modelConfig.presence_penalty?.toFixed(1)}
               min="-2"
               max="2"
@@ -531,7 +559,7 @@ export function Settings(props: { closeSettings: () => void }) {
                       )),
                 );
               }}
-            ></input>
+            ></InputRange>
           </SettingItem>
         </List>
       </div>

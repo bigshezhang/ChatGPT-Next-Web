@@ -1,10 +1,10 @@
-import { useDebouncedCallback } from "use-debounce";
+import { useDebounce, useDebouncedCallback } from "use-debounce";
 import { memo, useState, useRef, useEffect, useLayoutEffect } from "react";
 
 import SendWhiteIcon from "../icons/send-white.svg";
 import BrainIcon from "../icons/brain.svg";
-import ExportIcon from "../icons/export.svg";
-import MenuIcon from "../icons/menu.svg";
+import ExportIcon from "../icons/share.svg";
+import ReturnIcon from "../icons/return.svg";
 import CopyIcon from "../icons/copy.svg";
 import DownloadIcon from "../icons/download.svg";
 import LoadingIcon from "../icons/three-dots.svg";
@@ -24,6 +24,8 @@ const BotIcon: React.FC<Props> = ({ width = 24, height = 24, className }) => (
 );
 import AddIcon from "../icons/add.svg";
 import DeleteIcon from "../icons/delete.svg";
+import MaxIcon from "../icons/max.svg";
+import MinIcon from "../icons/min.svg";
 
 import {
   Message,
@@ -32,6 +34,7 @@ import {
   BOT_HELLO,
   ROLES,
   createMessage,
+  useAccessStore,
 } from "../store";
 
 import {
@@ -40,6 +43,7 @@ import {
   getEmojiUrl,
   isMobileScreen,
   selectOrCopy,
+  autoGrowTextArea,
 } from "../utils";
 
 import dynamic from "next/dynamic";
@@ -363,12 +367,14 @@ export function Chat(props: {
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [userInput, setUserInput] = useState("");
+  const [beforeInput, setBeforeInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { submitKey, shouldSubmit } = useSubmitHandler();
   const { scrollRef, setAutoScroll } = useScrollToBottom();
   const [hitBottom, setHitBottom] = useState(false);
 
   const onChatBodyScroll = (e: HTMLElement) => {
+    setAutoScroll(false);
     const isTouchBottom = e.scrollTop + e.clientHeight >= e.scrollHeight - 20;
     setHitBottom(isTouchBottom);
   };
@@ -400,6 +406,27 @@ export function Chat(props: {
     dom.scrollTop = dom.scrollHeight - dom.offsetHeight + paddingBottomNum;
   };
 
+  // auto grow input
+  const [inputRows, setInputRows] = useState(2);
+  const measure = useDebouncedCallback(
+    () => {
+      const rows = inputRef.current ? autoGrowTextArea(inputRef.current) : 1;
+      const inputRows = Math.min(
+        5,
+        Math.max(2 + Number(!isMobileScreen()), rows),
+      );
+      setInputRows(inputRows);
+    },
+    100,
+    {
+      leading: true,
+      trailing: true,
+    },
+  );
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(measure, [userInput]);
+
   // only search prompts when user input is short
   const SEARCH_TEXT_LIMIT = 30;
   const onInput = (text: string) => {
@@ -414,9 +441,6 @@ export function Chat(props: {
       // check if need to trigger auto completion
       if (text.startsWith("/")) {
         let searchText = text.slice(1);
-        if (searchText.length === 0) {
-          searchText = " ";
-        }
         onSearch(searchText);
       }
     }
@@ -427,6 +451,7 @@ export function Chat(props: {
     if (userInput.length <= 0) return;
     setIsLoading(true);
     chatStore.onUserInput(userInput).then(() => setIsLoading(false));
+    setBeforeInput(userInput);
     setUserInput("");
     setPromptHints([]);
     if (!isMobileScreen()) inputRef.current?.focus();
@@ -440,6 +465,12 @@ export function Chat(props: {
 
   // check if should send message
   const onInputKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // if ArrowUp and no userInput
+    if (e.key === "ArrowUp" && userInput.length <= 0) {
+      setUserInput(beforeInput);
+      e.preventDefault();
+      return;
+    }
     if (shouldSubmit(e)) {
       onUserSubmit();
       e.preventDefault();
@@ -478,11 +509,17 @@ export function Chat(props: {
 
   const context: RenderMessage[] = session.context.slice();
 
+  const accessStore = useAccessStore();
+
   if (
     context.length === 0 &&
     session.messages.at(0)?.content !== BOT_HELLO.content
   ) {
-    context.push(BOT_HELLO);
+    const copiedHello = Object.assign({}, BOT_HELLO);
+    if (!accessStore.isAuthorized()) {
+      copiedHello.content = Locale.Error.Unauthorized;
+    }
+    context.push(copiedHello);
   }
 
   // preview messages
@@ -527,13 +564,10 @@ export function Chat(props: {
   return (
     <div className={styles.chat} key={session.id}>
       <div className={styles["window-header"]}>
-        <div
-          className={styles["window-header-title"]}
-          onClick={props?.showSideBar}
-        >
+        <div className={styles["window-header-title"]}>
           <div
             className={`${styles["window-header-main-title"]} ${styles["chat-body-title"]}`}
-            onClick={() => {
+            onClickCapture={() => {
               const newTopic = prompt(Locale.Chat.Rename, session.topic);
               if (newTopic && newTopic !== session.topic) {
                 chatStore.updateCurrentSession(
@@ -552,7 +586,7 @@ export function Chat(props: {
         <div className={styles["window-actions"]}>
           <div className={styles["window-action-button"] + " " + styles.mobile}>
             <IconButton
-              icon={<MenuIcon />}
+              icon={<ReturnIcon />}
               bordered
               title={Locale.Chat.Actions.ChatList}
               onClick={props?.showSideBar}
@@ -581,6 +615,19 @@ export function Chat(props: {
               }}
             />
           </div>
+          {!isMobileScreen() && (
+            <div className={styles["window-action-button"]}>
+              <IconButton
+                icon={chatStore.config.tightBorder ? <MinIcon /> : <MaxIcon />}
+                bordered
+                onClick={() => {
+                  chatStore.updateConfig(
+                    (config) => (config.tightBorder = !config.tightBorder),
+                  );
+                }}
+              />
+            </div>
+          )}
         </div>
 
         <PromptToast
@@ -684,7 +731,6 @@ export function Chat(props: {
             ref={inputRef}
             className={styles["chat-input"]}
             placeholder={Locale.Chat.Input(submitKey)}
-            rows={2}
             onInput={(e) => onInput(e.currentTarget.value)}
             value={userInput}
             onKeyDown={onInputKeyDown}
@@ -694,6 +740,7 @@ export function Chat(props: {
               setTimeout(() => setPromptHints([]), 500);
             }}
             autoFocus={!props?.sideBarShowing}
+            rows={inputRows}
           />
           <IconButton
             icon={<SendWhiteIcon />}
